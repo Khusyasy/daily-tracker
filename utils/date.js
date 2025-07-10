@@ -12,3 +12,8 @@ export const dateToNow = (date) => {
   if (!date) return ''
   return dayjs(date).toNow()
 }
+
+export const timeFormat = (date) => {
+  if (!date) return ''
+  return dayjs(date).format('HH:mm:ss')
+}

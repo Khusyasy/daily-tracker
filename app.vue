@@ -10,12 +10,12 @@
   })
 
   const { tasks, checkins } = useTaskStore()
-
   const form = ref({
     task: '',
     url: '',
     refreshTime: '',
   })
+  const clockTime = ref(new Date())
 
   function handleSubmit() {
     tasks.value.push({
@@ -54,6 +54,11 @@
       })
     }
   }
+
+  // handle clock update every second
+  setInterval(() => {
+    clockTime.value = new Date()
+  }, 100)
 </script>
 
 <template>
@@ -94,7 +99,14 @@
     </div>
 
     <div class="max-w-4xl mx-auto my-4">
-      <h2 class="text-lg font-semibold text-gray-800">Tasks</h2>
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800">
+          Tasks
+        </h2>
+        <p class="text-lg font-bold text-gray-800">
+          {{ timeFormat(clockTime) }}
+        </p>
+      </div>
       <ul class="mt-2 space-y-2">
         <li v-for="task in tasks" :key="task.id" class="bg-white rounded shadow">
           <a class="flex items-center justify-between p-4 gap-4" :href="task.url" target="_blank"
