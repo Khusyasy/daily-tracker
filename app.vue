@@ -1,8 +1,8 @@
 <script setup>
   useHead({
-    title: 'My Vue App',
+    title: 'Daily Tracker',
     meta: [
-      { name: 'description', content: 'A simple Vue.js application' },
+      { name: 'description', content: 'Simple App to Track Your Dailies' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' }
     ]
   })
