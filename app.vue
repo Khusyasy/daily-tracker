@@ -1,4 +1,6 @@
 <script setup>
+  import { dateFromNow, dateToNow } from './utils/date'
+
   useHead({
     title: 'My Vue App',
     meta: [
@@ -7,21 +9,22 @@
     ]
   })
 
+  const { tasks, checkins } = useTaskStore()
+
   const form = ref({
     task: '',
     url: '',
     refreshTime: '',
   })
 
-  const tasks = ref([])
-  const checkins = ref([])
-
   function handleSubmit() {
     tasks.value.push({
+      id: generateId(),
       task: form.value.task,
       url: form.value.url,
       refreshTime: form.value.refreshTime,
       lastCheckin: null,
+      done: false,
     })
 
     form.value = {
@@ -31,19 +34,24 @@
     }
   }
 
-  function removeTask(index) {
-    tasks.value.splice(index, 1)
+  function removeTask(id) {
+    const index = tasks.value.findIndex(task => task.id === id)
+    if (index !== -1) {
+      tasks.value.splice(index, 1)
+    }
+    checkins.value = checkins.value.filter(checkin => checkin.taskId !== id)
   }
 
-  function checkinTask(index) {
-    const task = tasks.value[index]
+  function checkinTask(id) {
+    const task = tasks.value.find(task => task.id === id)
     if (task) {
       const now = new Date()
-      task.lastCheckin = now;
+      task.lastCheckin = now
+      task.done = true
       checkins.value.push({
-        taskId: index,
+        taskId: task.id,
         time: now,
-      });
+      })
     }
   }
 </script>
@@ -88,21 +96,32 @@
     <div class="max-w-4xl mx-auto my-4">
       <h2 class="text-lg font-semibold text-gray-800">Tasks</h2>
       <ul class="mt-2 space-y-2">
-        <li v-for="(task, index) in tasks" :key="index" class="bg-white rounded shadow">
-          <a class="flex items-center justify-between p-4" :href="task.lastCheckin ? null : task.url" target="_blank"
-            rel="noopener noreferrer" @click="task.lastCheckin ? null : checkinTask(index)">
-            <div>
-              <h3 class="text-md font-medium text-gray-900">{{ task.task }}</h3>
-              <p class="text-sm text-gray-600" v-if="task.refreshTime">Refresh Time: {{ task.refreshTime }}</p>
+        <li v-for="task in tasks" :key="task.id" class="bg-white rounded shadow">
+          <a class="flex items-center justify-between p-4 gap-4" :href="task.url" target="_blank"
+            rel="noopener noreferrer" @click="task.done ? null : checkinTask(task.id)">
+            <div class="flex-1 flex flex-row items-center justify-between">
+              <h3 class="text-lg font-medium text-gray-900">
+                {{ task.task }}
+              </h3>
+              <div class="flex flex-row gap-2">
+                <p v-if="task.done" class="text-md text-green-600 flex items-center justify-center">
+                  <Icon name="mdi:check" class="inline-block w-5 h-5 mr-1" />
+                  {{ dateFromNow(task.lastCheckin) }}
+                </p>
+                <p class="text-md text-gray-600 flex items-center justify-center">
+                  <Icon name="mdi:refresh" class="inline-block w-5 h-5 mr-1" />
+                  {{ task.refreshTime }}
+                </p>
+              </div>
             </div>
             <div>
-              <button @click.prevent="checkinTask(index)"
+              <button @click.prevent="task.done ? null : checkinTask(task.id)"
                 class="text-green-600 hover:text-green-800 px-4 py-2 rounded-s bg-green-50 hover:bg-green-100"
-                :class="{ 'opacity-50 cursor-not-allowed': task.lastCheckin }">
-                <Icon v-if="task.lastCheckin" name="mdi:check-bold" class="w-5 h-5" />
+                :class="{ 'opacity-50 cursor-not-allowed': task.done }">
+                <Icon v-if="task.done" name="mdi:check-bold" class="w-5 h-5" />
                 <Icon v-else name="mdi:send" class="w-5 h-5" />
               </button>
-              <button @click.prevent="removeTask(index)"
+              <button @click.prevent="removeTask(task.id)"
                 class="text-red-600 hover:text-red-800 px-4 py-2 rounded-e bg-red-50 hover:bg-red-100">
                 <Icon name="mdi:delete" class="w-5 h-5" />
               </button>
