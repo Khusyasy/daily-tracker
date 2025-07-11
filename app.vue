@@ -75,7 +75,8 @@
   <div class="min-h-screen bg-white">
     <Header />
 
-    <div class="flex flex-row items-center justify-center w-full max-w-4xl my-4 mx-auto gap-2">
+    <form @submit.prevent="handleSubmit"
+      class="flex flex-row items-center justify-center w-full max-w-4xl my-4 mx-auto gap-2">
       <div class="flex-1">
         <label for="task" class="block text-sm font-medium text-gray-700">
           Task
@@ -88,7 +89,7 @@
         <label for="url" class="block text-sm font-medium text-gray-700">
           URL
         </label>
-        <input v-model="form.url" type="url" id="url" name="url"
+        <input v-model="form.url" type="url" id="url" name="url" required
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
       </div>
 
@@ -96,17 +97,17 @@
         <label for="refresh-time" class="block text-sm font-medium text-gray-700">
           Refresh Time (local time)
         </label>
-        <input v-model="form.refreshTime" type="time" id="refresh-time" name="refresh-time"
+        <input v-model="form.refreshTime" type="time" id="refresh-time" name="refresh-time" required
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
       </div>
 
       <div>
-        <button @click.prevent="handleSubmit" type="button"
+        <button type="submit"
           class="flex items-center justify-center w-12 h-12 text-sm font-semibold text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
           <Icon name="mdi:plus" class="w-5 h-5" />
         </button>
       </div>
-    </div>
+    </form>
 
     <div class="max-w-4xl mx-auto my-4">
       <div class="flex items-center justify-between">
