@@ -87,9 +87,9 @@
 
       <div class="flex-1">
         <label for="url" class="block text-sm font-medium text-gray-700">
-          URL
+          URL (optional)
         </label>
-        <input v-model="form.url" type="url" id="url" name="url" required
+        <input v-model="form.url" type="url" id="url" name="url"
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
       </div>
 
@@ -148,7 +148,8 @@
               <button @click.stop.prevent="checkinTask(task.id)"
                 class="flex items-center justify-center p-2 rounded text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200">
                 <Icon v-if="task.done" name="mdi:check-bold" class="w-5 h-5" />
-                <Icon v-else name="mdi:send" class="w-5 h-5" />
+                <Icon v-else-if="task.url" name="mdi:share-variant" class="w-5 h-5" />
+                <Icon v-else name="mdi:send-outline" class="w-5 h-5" />
               </button>
             </div>
             <div v-if="deleteMode" class="flex flex-row items-center">
