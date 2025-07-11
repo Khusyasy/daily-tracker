@@ -1,3 +1,10 @@
+# Daily Tracker
+
+## Deploy to Github Pages
+
+https://nuxt.com/deploy/github-pages
+
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
