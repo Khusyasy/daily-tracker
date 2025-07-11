@@ -1,5 +1,45 @@
 <script setup>
+  const { tasks } = useTaskStore()
 
+  function handleExport() {
+    const data = JSON.stringify(tasks.value, null, 2)
+    const blob = new Blob([data], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tasks-${new Date().getTime()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImport() {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = (event) => {
+      const file = event.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          try {
+            const tasksLoaded = parseTasks(e.target.result)
+            tasksLoaded.forEach(task => {
+              const existingTask = tasks.value.find(t => t.id === task.id)
+              if (existingTask) {
+                Object.assign(existingTask, task)
+              } else {
+                tasks.value.push(task)
+              }
+            })
+          } catch (error) {
+            console.error('Invalid JSON file:', error)
+          }
+        }
+        reader.readAsText(file)
+      }
+    }
+    input.click()
+  }
 </script>
 
 <template>
@@ -9,13 +49,15 @@
         <Icon name="mdi:clipboard-clock-outline" class="w-8 h-8" />
         <h1 class="pl-2 text-lg font-bold">Daily Tracker</h1>
       </div>
-      <div>
-        <!-- TODO: make the cross platform sync -->
-        <!-- <button
-          class="flex items-center px-4 py-2 text-sm font-semibold bg-green-200 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500">
-          <Icon name="mdi:sync" class="w-4 h-4 text-green-600" />
-          Sync
-        </button> -->
+      <div class="flex flex-row items-center">
+        <button @click="handleExport"
+          class="p-2 rounded-s font-semibold flex items-center justify-center text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+          <Icon name="mdi:download" class="w-5 h-5" />
+        </button>
+        <button @click="handleImport"
+          class="p-2 rounded-e font-semibold flex items-center justify-center text-white bg-green-500 hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-500">
+          <Icon name="mdi:upload" class="w-5 h-5" />
+        </button>
       </div>
     </div>
   </header>

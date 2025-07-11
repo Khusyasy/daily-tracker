@@ -46,7 +46,7 @@
     if (task.url) {
       window.open(task.url, '_blank')
     }
-    if (task) {
+    if (task && !task.done) {
       const now = new Date()
       task.lastCheckin = now
       task.done = true
@@ -144,9 +144,8 @@
               </div>
             </div>
             <div v-if="!deleteMode">
-              <button @click.stop.prevent="task.done ? null : checkinTask(task.id)"
-                class="flex items-center justify-center p-2 rounded text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200"
-                :class="{ 'opacity-50 cursor-not-allowed': task.done }">
+              <button @click.stop.prevent="checkinTask(task.id)"
+                class="flex items-center justify-center p-2 rounded text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200">
                 <Icon v-if="task.done" name="mdi:check-bold" class="w-5 h-5" />
                 <Icon v-else name="mdi:send" class="w-5 h-5" />
               </button>
