@@ -43,18 +43,18 @@
 </script>
 
 <template>
-  <header class="w-screen px-2 py-4 text-green-600 border-b border-green-800 bg-white shadow">
+  <header class="w-screen px-2 py-4 text-green-800 border-b border-green-800 bg-white shadow">
     <div class="flex flex-row items-center justify-between h-full max-w-4xl mx-auto">
       <div class="flex flex-row items-center">
         <Icon name="mdi:clipboard-clock-outline" class="w-8 h-8" />
         <h1 class="pl-2 text-lg font-bold">Daily Tracker</h1>
       </div>
       <div class="flex flex-row items-center">
-        <button @click="handleExport"
+        <button @click="handleExport" aria-label="Export tasks"
           class="p-2 rounded-s font-semibold flex items-center justify-center text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
           <Icon name="mdi:download" class="w-5 h-5" />
         </button>
-        <button @click="handleImport"
+        <button @click="handleImport" aria-label="Import tasks"
           class="p-2 rounded-e font-semibold flex items-center justify-center text-white bg-green-500 hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-500">
           <Icon name="mdi:upload" class="w-5 h-5" />
         </button>

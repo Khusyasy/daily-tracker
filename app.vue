@@ -102,7 +102,7 @@
       </div>
 
       <div>
-        <button type="submit"
+        <button type="submit" aria-label="Add task"
           class="flex items-center justify-center w-12 h-12 text-sm font-semibold text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
           <Icon name="mdi:plus" class="w-5 h-5" />
         </button>
@@ -117,7 +117,7 @@
         <p class="text-lg font-bold text-gray-800">
           {{ timeFormat(clockTime) }}
         </p>
-        <button @click="deleteMode = !deleteMode"
+        <button @click="deleteMode = !deleteMode" aria-label="Toggle delete mode"
           class="ml-2 p-2 flex items-center justify-center text-sm font-medium rounded" :class="{
             'text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100': !deleteMode,
             'text-red-50 hover:text-red-100 bg-red-600 hover:bg-red-700': deleteMode
@@ -145,7 +145,7 @@
               </div>
             </div>
             <div v-if="!deleteMode">
-              <button @click.stop.prevent="checkinTask(task.id)"
+              <button @click.stop.prevent="checkinTask(task.id)" :aria-label="task.url ? 'Open URL' : 'Check-in task'"
                 class="flex items-center justify-center p-2 rounded text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200">
                 <Icon v-if="task.done" name="mdi:check-bold" class="w-5 h-5" />
                 <Icon v-else-if="task.url" name="mdi:share-variant" class="w-5 h-5" />
@@ -153,12 +153,12 @@
               </button>
             </div>
             <div v-if="deleteMode" class="flex flex-row items-center">
-              <button @click.stop.prevent="task.done ? uncheckinTask(task.id) : null"
-                class="flex items-center justify-center p-2 rounded-s text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200"
-                :class="{ 'opacity-50 cursor-not-allowed': !task.done }">
+              <button @click.stop.prevent="task.done ? uncheckinTask(task.id) : null" aria-label="Uncheck-in task"
+                :disabled="!task.done"
+                class="flex items-center justify-center p-2 rounded-s text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200">
                 <Icon name="mdi:close" class="w-5 h-5" />
               </button>
-              <button @click.stop.prevent="removeTask(task.id)"
+              <button @click.stop.prevent="removeTask(task.id)" aria-label="Delete task" :disabled="!deleteMode"
                 class="flex items-center justify-center p-2 rounded-e text-red-600 hover:text-red-800 bg-red-100 hover:bg-red-200">
                 <Icon name="mdi:delete" class="w-5 h-5" />
               </button>
