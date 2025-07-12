@@ -116,6 +116,30 @@
     })
     return streaks
   })
+
+  // reorder with drag and drop
+  const dragIndex = ref(-1)
+  const dragHoverIndex = ref(-1)
+  function handleDragStart(index) {
+    dragIndex.value = index
+    dragHoverIndex.value = index
+  }
+  function handleDragOver(index) {
+    if (dragIndex.value > -1) {
+      dragHoverIndex.value = index
+    } else {
+      dragHoverIndex.value = -1
+    }
+  }
+  function handleDrop(index) {
+    const draggedTask = tasks.value[dragIndex.value]
+    if (dragIndex.value !== index) {
+      tasks.value.splice(dragIndex.value, 1)
+      tasks.value.splice(index, 0, draggedTask)
+    }
+    dragIndex.value = -1
+    dragHoverIndex.value = -1
+  }
 </script>
 
 <template>
@@ -173,9 +197,17 @@
         </button>
       </div>
       <ul class="mt-2 space-y-2">
-        <!-- TODO: drag and drop reorder task thingy -->
-        <li v-for="task in tasks" :key="task.id" class="bg-white hover:bg-gray-50 rounded shadow">
-          <div class="flex items-center justify-between p-4 gap-4">
+        <li v-for="(task, index) in tasks" :key="task.id" @dragstart="handleDragStart(index)"
+          @dragover.prevent="handleDragOver(index)" @drop="handleDrop(index)" draggable="true"
+          class="flex items-center justify-between rounded shadow cursor-move" :class="{
+            'ring': dragIndex === index,
+            'bg-blue-50': dragHoverIndex === index,
+            'bg-white hover:bg-gray-50': dragIndex !== index && dragHoverIndex !== index
+          }">
+          <div class="flex items-center justify-center text-gray-400 my-auto mx-1 h-full">
+            <Icon name="mdi:drag-vertical" class="w-5 h-5" />
+          </div>
+          <div class="flex-1 flex items-center justify-between py-4 pr-4 gap-4">
             <div class="flex-1 flex flex-row items-center justify-between">
               <h3 class="text-lg font-medium text-gray-900">
                 {{ task.task }}
