@@ -82,7 +82,9 @@
   function uncheckinTask(id) {
     const task = tasks.value.find(task => task.id === id)
     if (task && tasksDone.value[id]) {
-      const checkinIndex = checkins.value.findIndex(checkin => checkin.taskId === id && checkin.time.getTime() === task.lastCheckin.getTime())
+      const checkinIndex = checkins.value.findIndex(checkin => {
+        return checkin.taskId === id && checkin.time.getTime() === task.lastCheckin.getTime()
+      })
       checkins.value.splice(checkinIndex, 1)
       task.lastCheckin = null
     }

@@ -36,7 +36,7 @@
               return
             }
             if (data.tasks) {
-              data.tasks.forEach(task => {
+              transformTasks(data.tasks).forEach(task => {
                 const existingTask = tasks.value.find(t => t.id === task.id)
                 if (existingTask) {
                   Object.assign(existingTask, task)
@@ -46,7 +46,7 @@
               })
             }
             if (data.checkins) {
-              data.checkins.forEach(checkin => {
+              transformCheckins(data.checkins).forEach(checkin => {
                 const existingCheckin = checkins.value.find(c => c.id === checkin.id)
                 if (existingCheckin) {
                   Object.assign(existingCheckin, checkin)
