@@ -1,13 +1,21 @@
 <script setup>
-  const { tasks } = useTaskStore()
+  const { tasks, checkins } = useTaskStore()
+
+  const SAVE_VERSION = '1.0'
 
   function handleExport() {
-    const data = JSON.stringify(tasks.value, null, 2)
+    const now = new Date()
+    const data = JSON.stringify({
+      version: SAVE_VERSION,
+      exportedAt: now,
+      tasks: tasks.value,
+      checkins: checkins.value,
+    })
     const blob = new Blob([data], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `tasks-${new Date().getTime()}.json`
+    a.download = `daily-tracker_${now.getTime()}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -22,15 +30,31 @@
         const reader = new FileReader()
         reader.onload = (e) => {
           try {
-            const tasksLoaded = parseTasks(e.target.result)
-            tasksLoaded.forEach(task => {
-              const existingTask = tasks.value.find(t => t.id === task.id)
-              if (existingTask) {
-                Object.assign(existingTask, task)
-              } else {
-                tasks.value.push(task)
-              }
-            })
+            const data = JSON.parse(e.target.result)
+            if (!data.version || data.version !== SAVE_VERSION) {
+              alert(`Incompatible file version: ${data.version}. Expected version: ${SAVE_VERSION}.`)
+              return
+            }
+            if (data.tasks) {
+              data.tasks.forEach(task => {
+                const existingTask = tasks.value.find(t => t.id === task.id)
+                if (existingTask) {
+                  Object.assign(existingTask, task)
+                } else {
+                  tasks.value.push(task)
+                }
+              })
+            }
+            if (data.checkins) {
+              data.checkins.forEach(checkin => {
+                const existingCheckin = checkins.value.find(c => c.id === checkin.id)
+                if (existingCheckin) {
+                  Object.assign(existingCheckin, checkin)
+                } else {
+                  checkins.value.push(checkin)
+                }
+              })
+            }
           } catch (error) {
             console.error('Invalid JSON file:', error)
           }

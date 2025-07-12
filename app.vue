@@ -18,7 +18,7 @@
 
   function handleSubmit() {
     tasks.value.push({
-      id: generateId(),
+      id: generateId(4),
       task: form.value.task,
       url: form.value.url,
       refreshTime: form.value.refreshTime,
@@ -51,6 +51,7 @@
       task.lastCheckin = now
       task.done = true
       checkins.value.push({
+        id: generateId(8),
         taskId: task.id,
         time: now,
       })

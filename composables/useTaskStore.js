@@ -1,22 +1,5 @@
 export const parseTasks = (string) => {
-  // const parsed = string ? JSON.parse(string) : []
-  // DUMMY DATA
-  const parsed = [
-    {
-      id: 'ABCD',
-      task: 'Task 1',
-      url: 'https://example.com',
-      lastCheckin: '2025-07-12T06:00:00Z',
-      refreshTime: '12:00',
-    },
-    {
-      id: 'EFGH',
-      task: 'Task 2',
-      url: 'https://example.com',
-      lastCheckin: '2025-07-11T00:00:00Z',
-      refreshTime: '14:30',
-    },
-  ]
+  const parsed = string ? JSON.parse(string) : []
   parsed.forEach(task => {
     if (task.lastCheckin) {
       task.lastCheckin = new Date(task.lastCheckin)
@@ -39,46 +22,7 @@ export const parseTasks = (string) => {
 }
 
 export const parseCheckins = (string) => {
-  // const parsed = string ? JSON.parse(string) : []
-  // DUMMY DATA
-  const parsed = [
-    {
-      taskId: 'EFGH',
-      time: '2025-07-08T00:00:00Z',
-    },
-    {
-      taskId: 'ABCD',
-      time: '2025-07-08T00:00:00Z',
-    },
-    {
-      taskId: 'EFGH',
-      time: '2025-07-09T00:00:00Z',
-    },
-    {
-      taskId: 'ABCD',
-      time: '2025-07-10T00:00:00Z',
-    },
-    {
-      taskId: 'EFGH',
-      time: '2025-07-10T00:00:00Z',
-    },
-    {
-      taskId: 'EFGH',
-      time: '2025-07-11T00:00:00Z',
-    },
-    {
-      taskId: 'ABCD',
-      time: '2025-07-11T00:00:00Z',
-    },
-    {
-      taskId: 'ABCD',
-      time: '2025-07-12T00:00:00Z',
-    },
-    {
-      taskId: 'EFGH',
-      time: '2025-07-12T00:00:00Z',
-    },
-  ]
+  const parsed = string ? JSON.parse(string) : []
   parsed.forEach(checkin => {
     checkin.time = new Date(checkin.time)
   })
