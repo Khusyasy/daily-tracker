@@ -16,6 +16,29 @@
   const deleteMode = ref(false)
   const clockTime = ref(new Date())
 
+  const tasksDone = computed(() => {
+    const temp = {}
+    tasks.value.forEach(task => {
+      if (!task.lastCheckin || !task.refreshTime) {
+        temp[task.id] = false
+        return
+      }
+
+      // get the next refresh date
+      const [hours, minutes] = task.refreshTime.split(':').map(Number);
+      const refreshDate = new Date();
+      refreshDate.setHours(hours, minutes, 0, 0);
+      if (refreshDate < clockTime.value) {
+        refreshDate.setDate(refreshDate.getDate() + 1);
+      }
+
+      // last checkin is within 24 hours
+      const diff = getMSDiff(task.lastCheckin, refreshDate);
+      temp[task.id] = diff <= MS_DAY
+    })
+    return temp
+  })
+
   function handleSubmit() {
     tasks.value.push({
       id: generateId(4),
@@ -23,7 +46,6 @@
       url: form.value.url,
       refreshTime: form.value.refreshTime,
       lastCheckin: null,
-      done: false,
     })
 
     form.value = {
@@ -46,10 +68,9 @@
     if (task.url) {
       window.open(task.url, '_blank')
     }
-    if (task && !task.done) {
+    if (task && !tasksDone.value[id]) {
       const now = new Date()
       task.lastCheckin = now
-      task.done = true
       checkins.value.push({
         id: generateId(8),
         taskId: task.id,
@@ -60,10 +81,10 @@
 
   function uncheckinTask(id) {
     const task = tasks.value.find(task => task.id === id)
-    if (task) {
+    if (task && tasksDone.value[id]) {
+      const checkinIndex = checkins.value.findIndex(checkin => checkin.taskId === id && checkin.time.getTime() === task.lastCheckin.getTime())
+      checkins.value.splice(checkinIndex, 1)
       task.lastCheckin = null
-      task.done = false
-      checkins.value = checkins.value.filter(checkin => checkin.taskId !== id)
     }
   }
 
@@ -84,7 +105,7 @@
       for (let i = taskCheckins.length - 1; i >= 0; i--) {
         const nextCheckinTime = taskCheckins[i].time
         const diff = getMSDiff(currCheckinTime, nextCheckinTime)
-        console.log(currCheckinTime, nextCheckinTime, diff)
+        // console.log(currCheckinTime, nextCheckinTime, diff)
         if (diff <= MS_DAY) {
           streaks[task.id]++
           currCheckinTime = nextCheckinTime
@@ -160,7 +181,7 @@
                 {{ task.task }}
               </h3>
               <div class="flex flex-row gap-2">
-                <p v-if="task.done" class="text-md text-green-600 flex items-center justify-center">
+                <p v-if="tasksDone[task.id]" class="text-md text-green-600 flex items-center justify-center">
                   <Icon name="mdi:check" class="w-5 h-5 mr-1" />
                   {{ dateFromNow(task.lastCheckin) }}
                 </p>
@@ -177,14 +198,14 @@
             <div v-if="!deleteMode">
               <button @click.stop.prevent="checkinTask(task.id)" :aria-label="task.url ? 'Open URL' : 'Check-in task'"
                 class="flex items-center justify-center p-2 rounded text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200">
-                <Icon v-if="task.done" name="mdi:check-bold" class="w-5 h-5" />
+                <Icon v-if="tasksDone[task.id]" name="mdi:check-bold" class="w-5 h-5" />
                 <Icon v-else-if="task.url" name="mdi:share-variant" class="w-5 h-5" />
                 <Icon v-else name="mdi:send-outline" class="w-5 h-5" />
               </button>
             </div>
             <div v-if="deleteMode" class="flex flex-row items-center">
-              <button @click.stop.prevent="task.done ? uncheckinTask(task.id) : null" aria-label="Uncheck-in task"
-                :disabled="!task.done"
+              <button @click.stop.prevent="tasksDone[task.id] ? uncheckinTask(task.id) : null"
+                aria-label="Uncheck-in task" :disabled="!tasksDone[task.id]"
                 class="flex items-center justify-center p-2 rounded-s text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200">
                 <Icon name="mdi:close" class="w-5 h-5" />
               </button>

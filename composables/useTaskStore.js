@@ -3,19 +3,7 @@ export const parseTasks = (string) => {
   parsed.forEach(task => {
     if (task.lastCheckin) {
       task.lastCheckin = new Date(task.lastCheckin)
-
-      // get the next refresh date
-      const [hours, minutes] = task.refreshTime.split(':').map(Number);
-      const refreshDate = new Date();
-      const today = new Date();
-      refreshDate.setHours(hours, minutes, 0, 0);
-      if (refreshDate < today) {
-        refreshDate.setDate(refreshDate.getDate() + 1);
-      }
-
-      // last checkin is within 24 hours
-      const diff = getMSDiff(task.lastCheckin, refreshDate);
-      task.done = diff <= MS_DAY;
+      delete task.done
     }
   })
   return parsed;
