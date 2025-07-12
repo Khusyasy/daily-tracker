@@ -1,12 +1,22 @@
-import { parse } from "vue/compiler-sfc";
-
-const MS_SEC = 1000;
-const MS_MIN = 60 * MS_SEC;
-const MS_HOUR = 60 * MS_MIN;
-const MS_DAY = 24 * MS_HOUR;
-
 export const parseTasks = (string) => {
-  const parsed = string ? JSON.parse(string) : []
+  // const parsed = string ? JSON.parse(string) : []
+  // DUMMY DATA
+  const parsed = [
+    {
+      id: 'ABCD',
+      task: 'Task 1',
+      url: 'https://example.com',
+      lastCheckin: '2025-07-12T06:00:00Z',
+      refreshTime: '12:00',
+    },
+    {
+      id: 'EFGH',
+      task: 'Task 2',
+      url: 'https://example.com',
+      lastCheckin: '2025-07-11T00:00:00Z',
+      refreshTime: '14:30',
+    },
+  ]
   parsed.forEach(task => {
     if (task.lastCheckin) {
       task.lastCheckin = new Date(task.lastCheckin)
@@ -19,10 +29,9 @@ export const parseTasks = (string) => {
       if (refreshDate < today) {
         refreshDate.setDate(refreshDate.getDate() + 1);
       }
-      task.refreshDate = refreshDate;
 
       // last checkin is within 24 hours
-      const diff = Math.abs(task.lastCheckin.getTime() - refreshDate.getTime());
+      const diff = getMSDiff(task.lastCheckin, refreshDate);
       task.done = diff <= MS_DAY;
     }
   })
@@ -30,7 +39,46 @@ export const parseTasks = (string) => {
 }
 
 export const parseCheckins = (string) => {
-  const parsed = string ? JSON.parse(string) : []
+  // const parsed = string ? JSON.parse(string) : []
+  // DUMMY DATA
+  const parsed = [
+    {
+      taskId: 'EFGH',
+      time: '2025-07-08T00:00:00Z',
+    },
+    {
+      taskId: 'ABCD',
+      time: '2025-07-08T00:00:00Z',
+    },
+    {
+      taskId: 'EFGH',
+      time: '2025-07-09T00:00:00Z',
+    },
+    {
+      taskId: 'ABCD',
+      time: '2025-07-10T00:00:00Z',
+    },
+    {
+      taskId: 'EFGH',
+      time: '2025-07-10T00:00:00Z',
+    },
+    {
+      taskId: 'EFGH',
+      time: '2025-07-11T00:00:00Z',
+    },
+    {
+      taskId: 'ABCD',
+      time: '2025-07-11T00:00:00Z',
+    },
+    {
+      taskId: 'ABCD',
+      time: '2025-07-12T00:00:00Z',
+    },
+    {
+      taskId: 'EFGH',
+      time: '2025-07-12T00:00:00Z',
+    },
+  ]
   parsed.forEach(checkin => {
     checkin.time = new Date(checkin.time)
   })

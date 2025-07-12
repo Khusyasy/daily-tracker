@@ -69,6 +69,31 @@
   setInterval(() => {
     clockTime.value = new Date()
   }, 100)
+
+  const streaks = computed(() => {
+    const streaks = {}
+    tasks.value.forEach(task => {
+      const taskCheckins = checkins.value.filter(checkin => checkin.taskId === task.id)
+      streaks[task.id] = 0
+      if (taskCheckins.length === 0) {
+        return
+      }
+      let currCheckinTime = task.lastCheckin ? new Date(task.lastCheckin) : taskCheckins[taskCheckins.length - 1].time
+      // assumed sorted by time ascending
+      for (let i = taskCheckins.length - 1; i >= 0; i--) {
+        const nextCheckinTime = taskCheckins[i].time
+        const diff = getMSDiff(currCheckinTime, nextCheckinTime)
+        console.log(currCheckinTime, nextCheckinTime, diff)
+        if (diff <= MS_DAY) {
+          streaks[task.id]++
+          currCheckinTime = nextCheckinTime
+        } else {
+          break
+        }
+      }
+    })
+    return streaks
+  })
 </script>
 
 <template>
@@ -137,6 +162,10 @@
                 <p v-if="task.done" class="text-md text-green-600 flex items-center justify-center">
                   <Icon name="mdi:check" class="w-5 h-5 mr-1" />
                   {{ dateFromNow(task.lastCheckin) }}
+                </p>
+                <p v-if="streaks[task.id] > 0" class="text-md text-yellow-600 flex items-center justify-center">
+                  <Icon name="mdi:fire" class="w-5 h-5 mr-1 text-yellow-500" />
+                  {{ streaks[task.id] }}
                 </p>
                 <p class="text-md text-gray-600 flex items-center justify-center">
                   <Icon name="mdi:refresh" class="w-5 h-5 mr-1" />
