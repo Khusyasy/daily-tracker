@@ -107,8 +107,9 @@
       for (let i = taskCheckins.length - 1; i >= 0; i--) {
         const nextCheckinTime = taskCheckins[i].time
         const diff = getMSDiff(currCheckinTime, nextCheckinTime)
-        // console.log(currCheckinTime, nextCheckinTime, diff)
-        if (diff <= MS_DAY) {
+        // TODO: recheck the streak count logic
+        // streak have range like from 1 ms to 2 days
+        if (diff <= 2 * MS_DAY) {
           streaks[task.id]++
           currCheckinTime = nextCheckinTime
         } else {
