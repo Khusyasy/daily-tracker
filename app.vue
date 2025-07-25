@@ -1,148 +1,148 @@
 <script setup>
-  useHead({
-    title: 'Daily Tracker',
-    meta: [
-      { name: 'description', content: 'Simple App to Track Your Dailies' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-    ]
+useHead({
+  title: 'Daily Tracker',
+  meta: [
+    { name: 'description', content: 'Simple App to Track Your Dailies' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+  ]
+})
+
+const { tasks, checkins } = useTaskStore()
+const form = ref({
+  task: '',
+  url: '',
+  refreshTime: '',
+})
+const editMode = ref(false)
+const clockTime = ref(new Date())
+
+const tasksDone = computed(() => {
+  const temp = {}
+  tasks.value.forEach(task => {
+    if (!task.lastCheckin || !task.refreshTime) {
+      temp[task.id] = false
+      return
+    }
+
+    // get the next refresh date
+    const [hours, minutes] = task.refreshTime.split(':').map(Number);
+    const refreshDate = new Date();
+    refreshDate.setHours(hours, minutes, 0, 0);
+    if (refreshDate < clockTime.value) {
+      refreshDate.setDate(refreshDate.getDate() + 1);
+    }
+
+    // last checkin is within 24 hours
+    const diff = getMSDiff(task.lastCheckin, refreshDate);
+    temp[task.id] = diff <= MS_DAY
+  })
+  return temp
+})
+
+function handleSubmit() {
+  tasks.value.push({
+    id: generateId(4),
+    task: form.value.task,
+    url: form.value.url,
+    refreshTime: form.value.refreshTime,
+    lastCheckin: null,
   })
 
-  const { tasks, checkins } = useTaskStore()
-  const form = ref({
+  form.value = {
     task: '',
     url: '',
-    refreshTime: '',
-  })
-  const editMode = ref(false)
-  const clockTime = ref(new Date())
+    refreshTime: ''
+  }
+}
 
-  const tasksDone = computed(() => {
-    const temp = {}
-    tasks.value.forEach(task => {
-      if (!task.lastCheckin || !task.refreshTime) {
-        temp[task.id] = false
-        return
-      }
+function removeTask(id) {
+  const index = tasks.value.findIndex(task => task.id === id)
+  if (index !== -1) {
+    tasks.value.splice(index, 1)
+  }
+  checkins.value = checkins.value.filter(checkin => checkin.taskId !== id)
+}
 
-      // get the next refresh date
-      const [hours, minutes] = task.refreshTime.split(':').map(Number);
-      const refreshDate = new Date();
-      refreshDate.setHours(hours, minutes, 0, 0);
-      if (refreshDate < clockTime.value) {
-        refreshDate.setDate(refreshDate.getDate() + 1);
-      }
-
-      // last checkin is within 24 hours
-      const diff = getMSDiff(task.lastCheckin, refreshDate);
-      temp[task.id] = diff <= MS_DAY
+function checkinTask(id) {
+  const task = tasks.value.find(task => task.id === id)
+  if (task.url) {
+    window.open(task.url, '_blank')
+  }
+  if (task && !tasksDone.value[id]) {
+    const now = new Date()
+    task.lastCheckin = now
+    checkins.value.push({
+      id: generateId(8),
+      taskId: task.id,
+      time: now,
     })
-    return temp
-  })
+  }
+}
 
-  function handleSubmit() {
-    tasks.value.push({
-      id: generateId(4),
-      task: form.value.task,
-      url: form.value.url,
-      refreshTime: form.value.refreshTime,
-      lastCheckin: null,
+function uncheckinTask(id) {
+  const task = tasks.value.find(task => task.id === id)
+  if (task && tasksDone.value[id]) {
+    const checkinIndex = checkins.value.findIndex(checkin => {
+      return checkin.taskId === id && checkin.time.getTime() === task.lastCheckin.getTime()
     })
-
-    form.value = {
-      task: '',
-      url: '',
-      refreshTime: ''
-    }
+    checkins.value.splice(checkinIndex, 1)
+    task.lastCheckin = null
   }
+}
 
-  function removeTask(id) {
-    const index = tasks.value.findIndex(task => task.id === id)
-    if (index !== -1) {
-      tasks.value.splice(index, 1)
+setInterval(() => {
+  clockTime.value = new Date()
+}, 100)
+
+const streaks = computed(() => {
+  const streaks = {}
+  tasks.value.forEach(task => {
+    const taskCheckins = checkins.value.filter(checkin => checkin.taskId === task.id)
+    streaks[task.id] = 0
+    if (taskCheckins.length === 0) {
+      return
     }
-    checkins.value = checkins.value.filter(checkin => checkin.taskId !== id)
-  }
-
-  function checkinTask(id) {
-    const task = tasks.value.find(task => task.id === id)
-    if (task.url) {
-      window.open(task.url, '_blank')
-    }
-    if (task && !tasksDone.value[id]) {
-      const now = new Date()
-      task.lastCheckin = now
-      checkins.value.push({
-        id: generateId(8),
-        taskId: task.id,
-        time: now,
-      })
-    }
-  }
-
-  function uncheckinTask(id) {
-    const task = tasks.value.find(task => task.id === id)
-    if (task && tasksDone.value[id]) {
-      const checkinIndex = checkins.value.findIndex(checkin => {
-        return checkin.taskId === id && checkin.time.getTime() === task.lastCheckin.getTime()
-      })
-      checkins.value.splice(checkinIndex, 1)
-      task.lastCheckin = null
-    }
-  }
-
-  setInterval(() => {
-    clockTime.value = new Date()
-  }, 100)
-
-  const streaks = computed(() => {
-    const streaks = {}
-    tasks.value.forEach(task => {
-      const taskCheckins = checkins.value.filter(checkin => checkin.taskId === task.id)
-      streaks[task.id] = 0
-      if (taskCheckins.length === 0) {
-        return
+    let currCheckinTime = task.lastCheckin ? new Date(task.lastCheckin) : taskCheckins[taskCheckins.length - 1].time
+    // assumed sorted by time ascending
+    for (let i = taskCheckins.length - 1; i >= 0; i--) {
+      const nextCheckinTime = taskCheckins[i].time
+      const diff = getMSDiff(currCheckinTime, nextCheckinTime)
+      // TODO: recheck the streak count logic
+      // streak have range like from 1 ms to 2 days
+      if (diff <= 2 * MS_DAY) {
+        streaks[task.id]++
+        currCheckinTime = nextCheckinTime
+      } else {
+        break
       }
-      let currCheckinTime = task.lastCheckin ? new Date(task.lastCheckin) : taskCheckins[taskCheckins.length - 1].time
-      // assumed sorted by time ascending
-      for (let i = taskCheckins.length - 1; i >= 0; i--) {
-        const nextCheckinTime = taskCheckins[i].time
-        const diff = getMSDiff(currCheckinTime, nextCheckinTime)
-        // TODO: recheck the streak count logic
-        // streak have range like from 1 ms to 2 days
-        if (diff <= 2 * MS_DAY) {
-          streaks[task.id]++
-          currCheckinTime = nextCheckinTime
-        } else {
-          break
-        }
-      }
-    })
-    return streaks
+    }
   })
+  return streaks
+})
 
-  // reorder with drag and drop
-  const dragIndex = ref(-1)
-  const dragHoverIndex = ref(-1)
-  function handleDragStart(index) {
-    dragIndex.value = index
+// reorder with drag and drop
+const dragIndex = ref(-1)
+const dragHoverIndex = ref(-1)
+function handleDragStart(index) {
+  dragIndex.value = index
+  dragHoverIndex.value = index
+}
+function handleDragOver(index) {
+  if (dragIndex.value > -1) {
     dragHoverIndex.value = index
-  }
-  function handleDragOver(index) {
-    if (dragIndex.value > -1) {
-      dragHoverIndex.value = index
-    } else {
-      dragHoverIndex.value = -1
-    }
-  }
-  function handleDrop(index) {
-    const draggedTask = tasks.value[dragIndex.value]
-    if (dragIndex.value !== index) {
-      tasks.value.splice(dragIndex.value, 1)
-      tasks.value.splice(index, 0, draggedTask)
-    }
-    dragIndex.value = -1
+  } else {
     dragHoverIndex.value = -1
   }
+}
+function handleDrop(index) {
+  const draggedTask = tasks.value[dragIndex.value]
+  if (dragIndex.value !== index) {
+    tasks.value.splice(dragIndex.value, 1)
+    tasks.value.splice(index, 0, draggedTask)
+  }
+  dragIndex.value = -1
+  dragHoverIndex.value = -1
+}
 </script>
 
 <template>
