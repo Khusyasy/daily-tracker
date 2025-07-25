@@ -95,14 +95,14 @@ setInterval(() => {
 }, 100)
 
 const streaks = computed(() => {
-  const streaks = {}
+  const counts = {}
   tasks.value.forEach(task => {
     const taskCheckins = checkins.value.filter(checkin => checkin.taskId === task.id)
-    streaks[task.id] = 0
+    counts[task.id] = 0
     if (taskCheckins.length === 0) {
       return
     }
-    let currCheckinTime = task.lastCheckin ? new Date(task.lastCheckin) : taskCheckins[taskCheckins.length - 1].time
+    let currCheckinTime = tasksDone.value[task.id] ? new Date(task.lastCheckin) : new Date()
     // assumed sorted by time ascending
     for (let i = taskCheckins.length - 1; i >= 0; i--) {
       const nextCheckinTime = taskCheckins[i].time
@@ -110,14 +110,14 @@ const streaks = computed(() => {
       // TODO: recheck the streak count logic
       // streak have range like from 1 ms to 2 days
       if (diff <= 2 * MS_DAY) {
-        streaks[task.id]++
+        counts[task.id]++
         currCheckinTime = nextCheckinTime
       } else {
         break
       }
     }
   })
-  return streaks
+  return counts
 })
 
 // reorder with drag and drop
