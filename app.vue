@@ -120,14 +120,20 @@ const streaks = computed(() => {
   return counts
 })
 
+function isMobile() {
+  return window.innerWidth < 640
+}
+
 // reorder with drag and drop
 const dragIndex = ref(-1)
 const dragHoverIndex = ref(-1)
 function handleDragStart(index) {
+  if (isMobile()) return
   dragIndex.value = index
   dragHoverIndex.value = index
 }
 function handleDragOver(index) {
+  if (isMobile()) return
   if (dragIndex.value > -1) {
     dragHoverIndex.value = index
   } else {
@@ -135,6 +141,7 @@ function handleDragOver(index) {
   }
 }
 function handleDrop(index) {
+  if (isMobile()) return
   const draggedTask = tasks.value[dragIndex.value]
   if (dragIndex.value !== index) {
     tasks.value.splice(dragIndex.value, 1)
@@ -150,8 +157,8 @@ function handleDrop(index) {
     <Header />
 
     <form @submit.prevent="handleSubmit"
-      class="flex flex-row items-end justify-center w-full max-w-4xl my-4 mx-auto px-4 gap-2">
-      <div class="flex-1">
+      class="flex flex-col sm:flex-row items-center sm:items-end justify-center w-full max-w-4xl my-4 mx-auto px-4 gap-2">
+      <div class="flex-1 w-full sm:w-auto">
         <label for="task" class="block text-sm font-medium text-gray-700">
           Task
         </label>
@@ -159,7 +166,7 @@ function handleDrop(index) {
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
       </div>
 
-      <div class="flex-1">
+      <div class="flex-1 w-full sm:w-auto">
         <label for="url" class="block text-sm font-medium text-gray-700">
           URL (optional)
         </label>
@@ -167,7 +174,7 @@ function handleDrop(index) {
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
       </div>
 
-      <div class="flex-[0.75]">
+      <div class="flex-[0.75] w-full sm:w-auto">
         <label for="refresh-time" class="block text-sm font-medium text-gray-700">
           Refresh Time (local time)
         </label>
@@ -175,7 +182,7 @@ function handleDrop(index) {
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
       </div>
 
-      <div>
+      <div class="w-full sm:w-auto">
         <button type="submit" aria-label="Add task"
           class="flex items-center justify-center p-2 text-sm font-semibold text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
           <Icon name="mdi:plus" class="w-5 h-5" />
@@ -199,10 +206,11 @@ function handleDrop(index) {
           <Icon name="mdi:note-edit" class="w-5 h-5" />
         </button>
       </div>
-      <ul class="mt-2 space-y-2">
+
+      <ul class="mt-2 space-y-2 px-4">
         <li v-for="(task, index) in tasks" :key="task.id" @dragstart="handleDragStart(index)"
-          @dragover.prevent="handleDragOver(index)" @drop="handleDrop(index)" draggable="true"
-          class="flex items-center justify-between rounded shadow cursor-move" :class="{
+          @dragover.prevent="handleDragOver(index)" @drop="handleDrop(index)" :draggable="!isMobile()"
+          class="flex items-center justify-between rounded shadow cursor-auto sm:cursor-move" :class="{
             'ring': dragIndex === index,
             'bg-blue-50': dragHoverIndex === index,
             'bg-white hover:bg-gray-50': dragIndex !== index && dragHoverIndex !== index
@@ -215,7 +223,7 @@ function handleDrop(index) {
               <h3 class="text-lg font-medium text-gray-900">
                 {{ task.task }}
               </h3>
-              <div class="flex flex-row gap-2">
+              <div class="flex flex-col-reverse sm:flex-row gap-2 items-end">
                 <p v-if="tasksDone[task.id]" class="text-md text-green-600 flex items-center justify-center">
                   <Icon name="mdi:check" class="w-5 h-5 mr-1" />
                   {{ dateFromNow(task.lastCheckin) }}
