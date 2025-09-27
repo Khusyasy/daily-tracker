@@ -1,7 +1,5 @@
-<script setup>
+<script setup lang="ts">
 const { tasks, checkins } = useTaskStore()
-
-const SAVE_VERSION = '1.0'
 
 function handleExport() {
   const now = new Date()
@@ -21,25 +19,48 @@ function handleExport() {
 }
 
 function handleImport() {
-  // TODO: tambahin confirmation dialog
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = '.json'
-  input.onchange = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result)
-          if (!data.version || data.version !== SAVE_VERSION) {
-            // TODO: handle migrations
-            alert(`Incompatible file version: ${data.version}. Expected version: ${SAVE_VERSION}.`)
-            return
-          }
-          if (data.tasks) {
-            // TODO: ganti jadi replace all aja
-            transformTasks(data.tasks).forEach(task => {
+  input.onchange = (event: Event) => {
+    if (!(event.target instanceof HTMLInputElement)) {
+      return
+    }
+
+    const file = event.target?.files?.[0]
+
+    if (!file || !confirm('Importing data will delete existing data. Continue?')) {
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        if (!e.target?.result || typeof e.target.result !== 'string') {
+          alert('Invalid file content')
+          return
+        }
+        const parsed = JSON.parse(e.target.result)
+        const saveRes = SaveSchema.safeParse(parsed)
+
+        if (!saveRes.success) {
+          alert('Invalid file format')
+          return
+        }
+
+        const saveData = saveRes.data
+
+        if (saveData.version !== SAVE_VERSION) {
+          // TODO: handle migrations
+          alert(`Incompatible file version: ${saveData.version}. Expected version: ${SAVE_VERSION}.`)
+          return
+        }
+
+        if (saveData.tasks) {
+          // TODO: ganti jadi replace all aja
+          const res = TasksSchema.safeParse(saveData.tasks)
+          if (res.success) {
+            res.data.forEach(task => {
               const existingTask = tasks.value.find(t => t.id === task.id)
               if (existingTask) {
                 Object.assign(existingTask, task)
@@ -48,9 +69,12 @@ function handleImport() {
               }
             })
           }
-          if (data.checkins) {
-            // TODO: ganti jadi replace all aja
-            transformCheckins(data.checkins).forEach(checkin => {
+        }
+        if (saveData.checkins) {
+          // TODO: ganti jadi replace all aja
+          const res = CheckinsSchema.safeParse(saveData.checkins)
+          if (res.success) {
+            res.data.forEach(checkin => {
               const existingCheckin = checkins.value.find(c => c.id === checkin.id)
               if (existingCheckin) {
                 Object.assign(existingCheckin, checkin)
@@ -59,12 +83,12 @@ function handleImport() {
               }
             })
           }
-        } catch (error) {
-          console.error('Invalid JSON file:', error)
         }
+      } catch (error) {
+        console.error('Invalid JSON file:', error)
       }
-      reader.readAsText(file)
     }
+    reader.readAsText(file)
   }
   input.click()
 }
