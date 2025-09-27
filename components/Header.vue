@@ -29,7 +29,7 @@ function handleImport() {
 
     const file = event.target?.files?.[0]
 
-    if (!file || !confirm('Importing data will delete existing data. Continue?')) {
+    if (!file || !confirm('Importing data will delete ALL existing data and it cannot be undone. Make sure you have a backup. Continue?')) {
       return
     }
 
@@ -57,31 +57,15 @@ function handleImport() {
         }
 
         if (saveData.tasks) {
-          // TODO: ganti jadi replace all aja
           const res = TasksSchema.safeParse(saveData.tasks)
           if (res.success) {
-            res.data.forEach(task => {
-              const existingTask = tasks.value.find(t => t.id === task.id)
-              if (existingTask) {
-                Object.assign(existingTask, task)
-              } else {
-                tasks.value.push(task)
-              }
-            })
+            tasks.value = res.data
           }
         }
         if (saveData.checkins) {
-          // TODO: ganti jadi replace all aja
           const res = CheckinsSchema.safeParse(saveData.checkins)
           if (res.success) {
-            res.data.forEach(checkin => {
-              const existingCheckin = checkins.value.find(c => c.id === checkin.id)
-              if (existingCheckin) {
-                Object.assign(existingCheckin, checkin)
-              } else {
-                checkins.value.push(checkin)
-              }
-            })
+            checkins.value = res.data
           }
         }
       } catch (error) {
