@@ -21,6 +21,7 @@ function handleExport() {
 }
 
 function handleImport() {
+  // TODO: tambahin confirmation dialog
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = '.json'
@@ -32,10 +33,12 @@ function handleImport() {
         try {
           const data = JSON.parse(e.target.result)
           if (!data.version || data.version !== SAVE_VERSION) {
+            // TODO: handle migrations
             alert(`Incompatible file version: ${data.version}. Expected version: ${SAVE_VERSION}.`)
             return
           }
           if (data.tasks) {
+            // TODO: ganti jadi replace all aja
             transformTasks(data.tasks).forEach(task => {
               const existingTask = tasks.value.find(t => t.id === task.id)
               if (existingTask) {
@@ -46,6 +49,7 @@ function handleImport() {
             })
           }
           if (data.checkins) {
+            // TODO: ganti jadi replace all aja
             transformCheckins(data.checkins).forEach(checkin => {
               const existingCheckin = checkins.value.find(c => c.id === checkin.id)
               if (existingCheckin) {
@@ -68,10 +72,19 @@ function handleImport() {
 
 <template>
   <header class="w-screen px-2 py-4 text-green-800 border-b border-green-800 bg-white shadow">
-    <div class="flex flex-row items-center justify-between h-full max-w-4xl mx-auto">
+    <div class="flex flex-row items-center justify-between h-full max-w-4xl mx-auto gap-4">
       <div class="flex flex-row items-center">
         <Icon name="mdi:clipboard-clock-outline" class="w-8 h-8" />
         <h1 class="pl-2 text-lg font-bold">Daily Tracker</h1>
+      </div>
+      <div class="flex flex-row items-center justify-start gap-2 flex-1">
+        <!-- TODO: add page transition or no?? -->
+        <NuxtLink to="/">
+          Tasks
+        </NuxtLink>
+        <NuxtLink to="/calendar">
+          Calendar
+        </NuxtLink>
       </div>
       <div class="flex flex-row items-center">
         <button @click="handleExport" aria-label="Export tasks"

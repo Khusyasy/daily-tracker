@@ -16,6 +16,7 @@ export const transformCheckins = (arr) => {
   })
 }
 
+// TODO: refactor to ts and add types
 export const useTaskStore = () => {
   const tasks = useState('tasks', () => {
     const saved = localStorage.getItem('tasks')
