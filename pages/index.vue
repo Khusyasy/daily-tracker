@@ -1,46 +1,47 @@
-<script setup>
-useHead({
-  title: 'Daily Tracker',
-  meta: [
-    { name: 'description', content: 'Simple App to Track Your Dailies' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-  ]
-})
-
+<script setup lang="ts">
 const { tasks, checkins } = useTaskStore()
-const form = ref({
+const form = ref<{
+  task: string,
+  url: string,
+  refreshTime: '' | number,
+}>({
   task: '',
   url: '',
-  // TODO: refresh time jadiin pake utc time + all other stuff :(
   refreshTime: '',
 })
 const editMode = ref(false)
 const clockTime = ref(new Date())
 
+const utcOffsets = ref([
+  -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+])
+
 const tasksDone = computed(() => {
-  const temp = {}
+  const temp: Record<string, boolean> = {}
   tasks.value.forEach(task => {
-    if (!task.lastCheckin || !task.refreshTime) {
+    if (!task.lastCheckin) {
       temp[task.id] = false
       return
     }
 
-    // get the next refresh date
-    const [hours, minutes] = task.refreshTime.split(':').map(Number);
-    const refreshDate = new Date();
-    refreshDate.setHours(hours, minutes, 0, 0);
-    if (refreshDate < clockTime.value) {
-      refreshDate.setDate(refreshDate.getDate() + 1);
-    }
+    const offset = task.refreshTime
 
-    // last checkin is within 24 hours
-    const diff = getMSDiff(task.lastCheckin, refreshDate);
-    temp[task.id] = diff <= MS_DAY
+    const now = dayjs(clockTime.value.getTime())
+    const refreshUTC = now.utc().utcOffset(offset).hour(0).minute(0).second(0).millisecond(0)
+    const lastCheckinUTC = dayjs(task.lastCheckin).utc().utcOffset(offset)
+
+    const sameDay = lastCheckinUTC.isSame(refreshUTC, 'day')
+    temp[task.id] = sameDay
   })
   return temp
 })
 
 function handleSubmit() {
+  if (!form.value.task || !form.value.refreshTime) {
+    return
+  }
+
   tasks.value.push({
     id: generateId(4),
     task: form.value.task,
@@ -52,11 +53,11 @@ function handleSubmit() {
   form.value = {
     task: '',
     url: '',
-    refreshTime: ''
+    refreshTime: '',
   }
 }
 
-function removeTask(id) {
+function removeTask(id: string) {
   const index = tasks.value.findIndex(task => task.id === id)
   if (index !== -1) {
     tasks.value.splice(index, 1)
@@ -64,9 +65,9 @@ function removeTask(id) {
   checkins.value = checkins.value.filter(checkin => checkin.taskId !== id)
 }
 
-function checkinTask(id) {
+function checkinTask(id: string) {
   const task = tasks.value.find(task => task.id === id)
-  if (task.url) {
+  if (task && task.url) {
     window.open(task.url, '_blank')
   }
   if (task && !tasksDone.value[id]) {
@@ -80,11 +81,11 @@ function checkinTask(id) {
   }
 }
 
-function uncheckinTask(id) {
+function uncheckinTask(id: string) {
   const task = tasks.value.find(task => task.id === id)
   if (task && tasksDone.value[id]) {
     const checkinIndex = checkins.value.findIndex(checkin => {
-      return checkin.taskId === id && checkin.time.getTime() === task.lastCheckin.getTime()
+      return checkin.taskId === id && task.lastCheckin && checkin.time.getTime() === task.lastCheckin.getTime()
     })
     checkins.value.splice(checkinIndex, 1)
     task.lastCheckin = null
@@ -96,22 +97,25 @@ setInterval(() => {
 }, 100)
 
 const streaks = computed(() => {
-  const counts = {}
+  const counts: Record<string, number> = {}
   tasks.value.forEach(task => {
     const taskCheckins = checkins.value.filter(checkin => checkin.taskId === task.id)
     counts[task.id] = 0
     if (taskCheckins.length === 0) {
       return
     }
-    let currCheckinTime = tasksDone.value[task.id] ? new Date(task.lastCheckin) : new Date()
+    let currCheckinTime = tasksDone.value[task.id] && task.lastCheckin ? new Date(task.lastCheckin) : new Date()
     // assumed sorted by time ascending
     for (let i = taskCheckins.length - 1; i >= 0; i--) {
-      const nextCheckinTime = taskCheckins[i].time
-      const diff = getMSDiff(currCheckinTime, nextCheckinTime)
-      // TODO: recheck the streak count logic
-      // streak have range like from 1 ms to 2 days
-      if (diff <= 2 * MS_DAY) {
-        counts[task.id]++
+      const checkin = taskCheckins[i]
+      if (!checkin) break
+
+      const nextCheckinTime = checkin.time
+      const daysDiff = dayjs(currCheckinTime).diff(dayjs(nextCheckinTime), 'day')
+      // console.log(task.task, currCheckinTime, nextCheckinTime, daysDiff)
+
+      if (daysDiff >= 0 && daysDiff < 2) {
+        counts[task.id] = (counts[task.id] ?? 0) + 1;
         currCheckinTime = nextCheckinTime
       } else {
         break
@@ -128,12 +132,12 @@ function isMobile() {
 // reorder with drag and drop
 const dragIndex = ref(-1)
 const dragHoverIndex = ref(-1)
-function handleDragStart(index) {
+function handleDragStart(index: number) {
   if (isMobile()) return
   dragIndex.value = index
   dragHoverIndex.value = index
 }
-function handleDragOver(index) {
+function handleDragOver(index: number) {
   if (isMobile()) return
   if (dragIndex.value > -1) {
     dragHoverIndex.value = index
@@ -141,9 +145,12 @@ function handleDragOver(index) {
     dragHoverIndex.value = -1
   }
 }
-function handleDrop(index) {
+function handleDrop(index: number) {
   if (isMobile()) return
+
   const draggedTask = tasks.value[dragIndex.value]
+  if (!draggedTask) return
+
   if (dragIndex.value !== index) {
     tasks.value.splice(dragIndex.value, 1)
     tasks.value.splice(index, 0, draggedTask)
@@ -175,13 +182,18 @@ function handleDrop(index) {
 
       <div class="flex-[0.75] w-full sm:w-auto">
         <label for="refresh-time" class="block text-sm font-medium text-gray-700">
-          Refresh Time (local time)
+          Refresh Time (UTC)
         </label>
-        <input v-model="form.refreshTime" type="time" id="refresh-time" name="refresh-time" required
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
+        <select v-model="form.refreshTime" id="refresh-time" name="refresh-time" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+          <option value="" disabled>Select Offset</option>
+          <option v-for="offset in utcOffsets" :key="offset" :value="offset">
+            {{ offsetFormat(offset) }} | UTC{{ offset >= 0 ? '+' : '' }}{{ offset }}
+          </option>
+        </select>
       </div>
 
-      <div class="w-full sm:w-auto">
+      <div class=" w-full sm:w-auto">
         <button type="submit" aria-label="Add task"
           class="flex items-center justify-center p-2 text-sm font-semibold text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
           <Icon name="mdi:plus" class="w-5 h-5" />
@@ -227,13 +239,13 @@ function handleDrop(index) {
                   <Icon name="mdi:check" class="w-5 h-5 mr-1" />
                   {{ dateFromNow(task.lastCheckin) }}
                 </p>
-                <p v-if="streaks[task.id] > 0" class="text-md text-yellow-600 flex items-center justify-center">
+                <p v-if="streaks[task.id] ?? 0 > 0" class="text-md text-yellow-600 flex items-center justify-center">
                   <Icon name="mdi:fire" class="w-5 h-5 mr-1 text-yellow-500" />
                   {{ streaks[task.id] }}
                 </p>
                 <p class="text-md text-gray-600 flex items-center justify-center">
                   <Icon name="mdi:refresh" class="w-5 h-5 mr-1" />
-                  {{ task.refreshTime }}
+                  {{ offsetFormat(task.refreshTime) }}
                 </p>
               </div>
             </div>

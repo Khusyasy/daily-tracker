@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
-export const SAVE_VERSION = '1.0'
+export const LATEST_SAVE_VERSION = 2
 
 export const SaveSchema = z.object({
-  version: z.string(),
+  version: z.number(),
   exportedAt: z.preprocess((arg: string) => new Date(arg), z.date()),
   // tasks sama checkins sengaja any biar bisa migrations stuff i think
   tasks: z.any(),
@@ -15,7 +15,7 @@ export const TaskSchema = z.object({
   id: z.string(),
   task: z.string(),
   url: z.union([z.literal(""), z.url()]),
-  refreshTime: z.string(),
+  refreshTime: z.int().min(-12).max(14),
   lastCheckin: z.preprocess((arg) => {
     if (typeof arg === "string") {
       return new Date(arg)
