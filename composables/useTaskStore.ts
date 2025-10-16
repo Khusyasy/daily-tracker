@@ -1,24 +1,10 @@
 export const useTaskStore = () => {
-  const tasks = useState<TasksType>('tasks', () => {
-    const saved = localStorage.getItem('tasks')
-    const parsed = saved ? JSON.parse(saved) : []
-    const res = TasksSchema.safeParse(parsed)
-    if (!res.success) {
-      return []
-    } else {
-      return res.data
-    }
-  })
+  const version = useState<number>('version', () => 1)
+  const tasks = useState<TasksType>('tasks', () => [])
+  const checkins = useState<CheckinsType>('checkins', () => [])
 
-  const checkins = useState<CheckinsType>('checkins', () => {
-    const saved = localStorage.getItem('checkins')
-    const parsed = saved ? JSON.parse(saved) : []
-    const res = CheckinsSchema.safeParse(parsed)
-    if (!res.success) {
-      return []
-    } else {
-      return res.data
-    }
+  watch(version, (val) => {
+    localStorage.setItem('version', JSON.stringify(val))
   })
 
   watch(tasks, (val) => {
@@ -29,5 +15,41 @@ export const useTaskStore = () => {
     localStorage.setItem('checkins', JSON.stringify(val))
   }, { deep: true })
 
-  return { tasks, checkins }
+  return { version, tasks, checkins }
+}
+
+export function loadTaskStore() {
+  const { version, tasks, checkins } = useTaskStore()
+
+  const rawVersion = localStorage.getItem('version')
+  const resVersion = rawVersion ? parseInt(rawVersion) : 1
+
+  const rawTasks = localStorage.getItem('tasks')
+  const parsedTasks = rawTasks ? JSON.parse(rawTasks) : []
+
+  const rawCheckins = localStorage.getItem('checkins')
+  const parsedCheckins = rawCheckins ? JSON.parse(rawCheckins) : []
+
+  if (resVersion < LATEST_SAVE_VERSION) {
+    // do migrations
+    let saveData = {
+      version: version.value,
+      exportedAt: new Date(),
+      tasks: parsedTasks,
+      checkins: parsedCheckins,
+    }
+
+    saveData = handleMigration(saveData)
+
+    version.value = saveData.version
+    tasks.value = saveData.tasks
+    checkins.value = saveData.checkins
+  } else {
+    // just load
+    const resTasks = TasksSchema.safeParse(parsedTasks)
+    tasks.value = resTasks.success ? resTasks.data : []
+
+    const resCheckins = CheckinsSchema.safeParse(parsedCheckins)
+    checkins.value = resCheckins.success ? resCheckins.data : []
+  }
 }
