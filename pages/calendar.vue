@@ -79,14 +79,14 @@ const checkinsInDate = computed(() => {
     const task = tasksC.value[c.taskId]?.task
     if (!task) return false
 
-    const time = dayjs(c.time).utc().utcOffset(task.refreshTime || 0)
+    const time = dayjs(c.createdAt).utc().utcOffset(task.refreshTime || 0)
     return time.year() === year.value && (time.month() + 1) === month.value
   })
   checkinsInMonth.forEach(c => {
     const task = tasksC.value[c.taskId]?.task
     if (!task) return
 
-    const time = dayjs(c.time).utc().utcOffset(task.refreshTime || 0)
+    const time = dayjs(c.createdAt).utc().utcOffset(task.refreshTime || 0)
     const date = time.date()
     if (map[date]) {
       map[date][c.taskId] = true

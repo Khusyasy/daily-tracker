@@ -1,13 +1,13 @@
 import { z } from 'zod'
 
-export const LATEST_SAVE_VERSION = 2
+export const LATEST_SAVE_VERSION = 3
 
 export const SaveSchema = z.object({
   version: z.number(),
   exportedAt: z.preprocess((arg: string) => new Date(arg), z.date()),
-  // tasks sama checkins sengaja any biar bisa migrations stuff i think
-  tasks: z.any(),
-  checkins: z.any(),
+  // tasks, checkins sengaja generic disini biar bisa migrations stuff
+  tasks: z.array(z.record(z.string(), z.any())),
+  checkins: z.array(z.record(z.string(), z.any())),
 })
 export type SaveType = z.infer<typeof SaveSchema>
 
@@ -22,6 +22,7 @@ export const TaskSchema = z.object({
     }
     return null;
   }, z.date().nullable()),
+  createdAt: z.preprocess((arg: string) => new Date(arg), z.date()),
 });
 export type TaskType = z.infer<typeof TaskSchema>
 
@@ -31,7 +32,7 @@ export type TasksType = z.infer<typeof TasksSchema>
 export const CheckinSchema = z.object({
   id: z.string(),
   taskId: z.string(),
-  time: z.preprocess((arg: string) => new Date(arg), z.date()),
+  createdAt: z.preprocess((arg: string) => new Date(arg), z.date()),
 })
 export type CheckinType = z.infer<typeof CheckinSchema>
 

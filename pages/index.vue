@@ -48,6 +48,7 @@ function handleSubmit() {
     url: form.value.url,
     refreshTime: form.value.refreshTime,
     lastCheckin: null,
+    createdAt: new Date(),
   })
 
   form.value = {
@@ -76,7 +77,7 @@ function checkinTask(id: string) {
     checkins.value.push({
       id: generateId(8),
       taskId: task.id,
-      time: now,
+      createdAt: now,
     })
   }
 }
@@ -85,7 +86,7 @@ function uncheckinTask(id: string) {
   const task = tasks.value.find(task => task.id === id)
   if (task && tasksDone.value[id]) {
     const checkinIndex = checkins.value.findIndex(checkin => {
-      return checkin.taskId === id && task.lastCheckin && checkin.time.getTime() === task.lastCheckin.getTime()
+      return checkin.taskId === id && task.lastCheckin && checkin.createdAt.getTime() === task.lastCheckin.getTime()
     })
     checkins.value.splice(checkinIndex, 1)
     task.lastCheckin = null
@@ -110,7 +111,7 @@ const streaks = computed(() => {
       const checkin = taskCheckins[i]
       if (!checkin) break
 
-      const nextCheckinTime = checkin.time
+      const nextCheckinTime = checkin.createdAt
       const daysDiff = dayjs(currCheckinTime).diff(dayjs(nextCheckinTime), 'day')
       // console.log(task.task, currCheckinTime, nextCheckinTime, daysDiff)
 
