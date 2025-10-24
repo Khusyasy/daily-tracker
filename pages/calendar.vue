@@ -67,7 +67,9 @@ const tasksC = computed(() => {
 const checkinsInDate = computed(() => {
   const defaultTaskMap: Record<string, boolean> = {}
   tasks.value.forEach(t => {
-    defaultTaskMap[t.id] = false
+    if (selected.value[t.id]) {
+      defaultTaskMap[t.id] = false
+    }
   })
 
   const map: Record<string, Record<string, boolean>> = {}
@@ -88,27 +90,12 @@ const checkinsInDate = computed(() => {
 
     const time = dayjs(c.createdAt).utc().utcOffset(task.refreshTime || 0)
     const date = time.date()
-    if (map[date]) {
+
+    if (map[date] && selected.value[c.taskId]) {
       map[date][c.taskId] = true
     }
   })
 
-  return map
-})
-
-const dateCheckinsFiltered = computed(() => {
-  const map: Record<string, Record<string, boolean>> = {}
-  Object.entries(checkinsInDate.value).forEach(([date, taskMap]) => {
-    map[date] = {}
-    Object.entries(taskMap).forEach(([taskId, yes]) => {
-      if (selected.value[taskId]) {
-        if (!map[date]) {
-          map[date] = {}
-        }
-        map[date][taskId] = yes
-      }
-    })
-  })
   return map
 })
 
@@ -172,7 +159,7 @@ const dateCheckinsFiltered = computed(() => {
         }">
           <div class="text-sm mb-1 font-semibold">{{ date }}</div>
           <div class="flex flex-row gap-1 flex-wrap overflow-y-auto">
-            <div v-for="(done, taskId) in dateCheckinsFiltered[date]" class="text-xs rounded h-4 w-4 border"
+            <div v-for="(done, taskId) in checkinsInDate[date]" class="text-xs rounded h-4 w-4 border"
               style="background-color: var(--bg-color); border-color: var(--color);" :style="{
                 '--color': tasksC[taskId]?.color,
                 '--bg-color': done ? tasksC[taskId]?.color : 'transparent',
