@@ -33,7 +33,7 @@ export function loadTaskStore() {
   if (resVersion < LATEST_SAVE_VERSION) {
     // do migrations
     let saveData = {
-      version: version.value,
+      version: resVersion,
       exportedAt: new Date(),
       tasks: parsedTasks,
       checkins: parsedCheckins,
