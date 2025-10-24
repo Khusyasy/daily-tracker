@@ -32,51 +32,83 @@ function nextMonth() {
 
 const { tasks, checkins } = useTaskStore()
 
-const ID2Task = computed(() => {
-  const map: Record<string, TaskType> = {}
+const selected = ref<Record<string, boolean>>({})
+const selectedAll = computed({
+  get: () => {
+    return tasks.value.length > 0 && tasks.value.every(t => selected.value[t.id])
+  },
+  set: (val: boolean) => {
+    tasks.value.forEach(t => {
+      selected.value[t.id] = val
+    })
+  }
+})
+onMounted(() => {
   tasks.value.forEach(t => {
-    map[t.id] = t
+    selected.value[t.id] = true
+  })
+})
+
+type taskCItem = {
+  task: TaskType,
+  color: string,
+}
+const tasksC = computed(() => {
+  const map: Record<string, taskCItem> = {}
+  tasks.value.forEach(t => {
+    map[t.id] = {
+      task: t,
+      color: stringToHexColor(t.task),
+    }
   })
   return map
 })
 
-const taskID2Color = computed(() => {
-  const map: Record<string, string> = {}
+const checkinsInDate = computed(() => {
+  const defaultTaskMap: Record<string, boolean> = {}
   tasks.value.forEach(t => {
-    map[t.id] = stringToHexColor(t.task)
-  })
-  return map
-})
-
-const dateCheckins = computed(() => {
-  const taskMap: Record<string, boolean> = {}
-  tasks.value.forEach(t => {
-    taskMap[t.id] = false
+    defaultTaskMap[t.id] = false
   })
 
   const map: Record<string, Record<string, boolean>> = {}
   for (let i = 1; i <= datesInMonth.value; i++) {
-    map[i] = { ...taskMap }
+    map[i] = { ...defaultTaskMap }
   }
 
   const checkinsInMonth = checkins.value.filter(c => {
-    const task = ID2Task.value[c.taskId]
+    const task = tasksC.value[c.taskId]?.task
     if (!task) return false
 
     const time = dayjs(c.time).utc().utcOffset(task.refreshTime || 0)
     return time.year() === year.value && (time.month() + 1) === month.value
   })
   checkinsInMonth.forEach(c => {
-    const task = ID2Task.value[c.taskId]
+    const task = tasksC.value[c.taskId]?.task
     if (!task) return
 
     const time = dayjs(c.time).utc().utcOffset(task.refreshTime || 0)
-    const day = time.date()
-    if (map[day]) {
-      map[day][c.taskId] = true
+    const date = time.date()
+    if (map[date]) {
+      map[date][c.taskId] = true
     }
   })
 
+  return map
+})
+
+const dateCheckinsFiltered = computed(() => {
+  const map: Record<string, Record<string, boolean>> = {}
+  Object.entries(checkinsInDate.value).forEach(([date, taskMap]) => {
+    map[date] = {}
+    Object.entries(taskMap).forEach(([taskId, yes]) => {
+      if (selected.value[taskId]) {
+        if (!map[date]) {
+          map[date] = {}
+        }
+        map[date][taskId] = yes
+      }
+    })
+  })
   return map
 })
 
@@ -90,14 +122,21 @@ const dateCheckins = computed(() => {
         Calendar View
       </h2>
       <div class="mb-1">
-        <h3 class="mb-1 font-semibold">Tasks</h3>
-        <!-- TODO: implement jadi checkboxes buat milih apa aja yang ditampilin -->
-        <div class="flex flex-row flex-wrap gap-x-4">
-          <div v-for="task in tasks" :key="task.id" class="flex items-center justify-center gap-1">
-            <p class="h-4 w-4 rounded" :style="{
-              'background-color': taskID2Color[task.id]
-            }"></p>
-            <p>{{ task.task }}</p>
+        <div class="mb-1">
+          <input type="checkbox" name="selectAll" id="selectAll" v-model="selectedAll" class="h-4 w-4 rounded" />
+          <label for="selectAll" class="mb-1 font-semibold">
+            Tasks
+          </label>
+        </div>
+        <div class="flex flex-row flex-wrap gap-x-2 gap-y-1">
+          <div v-for="task in tasks" :key="task.id"
+            class="flex items-center justify-center gap-1 rounded bg-gray-100 px-2 py-1 border" :style="{
+              accentColor: tasksC[task.id]?.color,
+              borderColor: selected[task.id] ? tasksC[task.id]?.color : 'transparent'
+            }">
+            <input type="checkbox" name="selectedTasks" :id="'task-' + task.id" v-model="selected[task.id]"
+              class="h-4 w-4 rounded" />
+            <label :for="'task-' + task.id">{{ task.task }}</label>
           </div>
         </div>
       </div>
@@ -133,10 +172,10 @@ const dateCheckins = computed(() => {
         }">
           <div class="text-sm mb-1 font-semibold">{{ date }}</div>
           <div class="flex flex-row gap-1 flex-wrap overflow-y-auto">
-            <div v-for="(yes, taskId) in dateCheckins[date]" class="text-xs rounded h-4 w-4 border"
+            <div v-for="(done, taskId) in dateCheckinsFiltered[date]" class="text-xs rounded h-4 w-4 border"
               style="background-color: var(--bg-color); border-color: var(--color);" :style="{
-                '--color': taskID2Color[taskId],
-                '--bg-color': yes ? taskID2Color[taskId] : 'transparent',
+                '--color': tasksC[taskId]?.color,
+                '--bg-color': done ? tasksC[taskId]?.color : 'transparent',
               }"></div>
           </div>
         </div>
