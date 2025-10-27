@@ -38,7 +38,7 @@ const tasksDone = computed(() => {
 })
 
 function handleSubmit() {
-  if (!form.value.task || !form.value.refreshTime) {
+  if (!form.value.task || form.value.refreshTime === '') {
     return
   }
 
@@ -60,6 +60,13 @@ function handleSubmit() {
 
 function removeTask(id: string) {
   const index = tasks.value.findIndex(task => task.id === id)
+  const task = tasks.value[index]
+  if (!task) return
+  // TODO: change confirm with better ui
+  if (!confirm(`Are you sure you want to delete the task "${task.task}"? This action cannot be undone.`)) {
+    return
+  }
+
   if (index !== -1) {
     tasks.value.splice(index, 1)
   }
@@ -84,13 +91,18 @@ function checkinTask(id: string) {
 
 function uncheckinTask(id: string) {
   const task = tasks.value.find(task => task.id === id)
-  if (task && tasksDone.value[id]) {
-    const checkinIndex = checkins.value.findIndex(checkin => {
-      return checkin.taskId === id && task.lastCheckin && checkin.createdAt.getTime() === task.lastCheckin.getTime()
-    })
-    checkins.value.splice(checkinIndex, 1)
-    task.lastCheckin = null
+  if (!task) return
+  // TODO: change confirm with better ui
+  if (!confirm(`Are you sure you want to remove last checkin for the task "${task.task}"? This action cannot be undone.`)) {
+    return
   }
+  if (!tasksDone.value[id]) return
+
+  const checkinIndex = checkins.value.findIndex(checkin => {
+    return checkin.taskId === id && task.lastCheckin && checkin.createdAt.getTime() === task.lastCheckin.getTime()
+  })
+  checkins.value.splice(checkinIndex, 1)
+  task.lastCheckin = null
 }
 
 setInterval(() => {
@@ -126,10 +138,6 @@ const streaks = computed(() => {
   return counts
 })
 
-function isMobile() {
-  return window.innerWidth < 640
-}
-
 // reorder with drag and drop
 const dragIndex = ref(-1)
 const dragHoverIndex = ref(-1)
@@ -164,13 +172,13 @@ function handleDrop(index: number) {
 <template>
   <div>
     <form @submit.prevent="handleSubmit"
-      class="flex flex-col sm:flex-row items-center sm:items-end justify-center w-full max-w-4xl my-4 mx-auto px-4 gap-2">
+      class="flex flex-col sm:flex-row items-center sm:items-end justify-center w-full max-w-4xl my-2 mx-auto p-4 gap-2 bg-cyan-50/50 shadow rounded">
       <div class="flex-1 w-full sm:w-auto">
         <label for="task" class="block text-sm font-medium text-gray-700">
           Task
         </label>
         <input v-model="form.task" type="text" id="task" name="task" required
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-cyan-500 sm:text-sm" />
       </div>
 
       <div class="flex-1 w-full sm:w-auto">
@@ -178,7 +186,7 @@ function handleDrop(index: number) {
           URL (optional)
         </label>
         <input v-model="form.url" type="url" id="url" name="url"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-cyan-500 sm:text-sm" />
       </div>
 
       <div class="flex-[0.75] w-full sm:w-auto">
@@ -186,8 +194,8 @@ function handleDrop(index: number) {
           Refresh Time (UTC)
         </label>
         <select v-model="form.refreshTime" id="refresh-time" name="refresh-time" required
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-          <option value="" disabled>Select Offset</option>
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-cyan-500 sm:text-sm">
+          <option value="">Select Offset</option>
           <option v-for="offset in utcOffsets" :key="offset" :value="offset">
             {{ offsetFormat(offset) }} | UTC{{ offset >= 0 ? '+' : '' }}{{ offset }}
           </option>
@@ -196,14 +204,14 @@ function handleDrop(index: number) {
 
       <div class=" w-full sm:w-auto">
         <button type="submit" aria-label="Add task"
-          class="flex items-center justify-center p-2 text-sm font-semibold text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+          class="flex items-center justify-center p-2 text-sm font-semibold text-white bg-cyan-600 rounded hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <Icon name="mdi:plus" class="w-5 h-5" />
         </button>
       </div>
     </form>
 
-    <div class="max-w-4xl mx-auto my-4">
-      <div class="flex items-center justify-between px-4">
+    <div class="max-w-4xl mx-auto my-2 bg-cyan-50/50 shadow rounded relative">
+      <div class="flex items-center justify-between sticky top-0 p-4 bg-cyan-50/50 backdrop-blur z-50">
         <h2 class="text-lg font-semibold text-gray-800">
           Tasks
         </h2>
@@ -219,24 +227,25 @@ function handleDrop(index: number) {
         </button>
       </div>
 
-      <ul class="mt-2 space-y-2 px-4">
+      <ul class="space-y-2 px-4 py-2">
         <li v-for="(task, index) in tasks" :key="task.id" @dragstart="handleDragStart(index)"
           @dragover.prevent="handleDragOver(index)" @drop="handleDrop(index)" :draggable="!isMobile()"
-          class="flex items-center justify-between rounded shadow cursor-auto sm:cursor-move" :class="{
+          class="flex items-center justify-between rounded shadow cursor-auto sm:cursor-move text-sm sm:text-base"
+          :class="{
             'ring': dragIndex === index,
             'bg-blue-50': dragHoverIndex === index,
-            'bg-white hover:bg-gray-50': dragIndex !== index && dragHoverIndex !== index
+            'bg-white hover:bg-gray-50': dragIndex !== index && dragHoverIndex !== index,
           }">
-          <div class="flex items-center justify-center text-gray-400 my-auto mx-1 h-full">
+          <div class="flex items-center justify-center my-auto mx-1 h-full text-gray-200 sm:text-gray-600">
             <Icon name="mdi:drag-vertical" class="w-5 h-5" />
           </div>
           <div class="flex-1 flex items-center justify-between py-4 pr-4 gap-4">
-            <div class="flex-1 flex flex-row items-center justify-between">
-              <h3 class="text-lg font-medium text-gray-900">
+            <div class="flex-1 flex flex-col items-start sm:flex-row sm:items-center justify-between ">
+              <h3 class="text-base sm:text-lg font-medium text-gray-900">
                 {{ task.task }}
               </h3>
-              <div class="flex flex-col-reverse sm:flex-row gap-2 items-end">
-                <p v-if="tasksDone[task.id]" class="text-md text-green-600 flex items-center justify-center">
+              <div class="flex flex-row-reverse sm:flex-row gap-2 items-end">
+                <p v-if="tasksDone[task.id]" class="text-md text-green-700 flex items-center justify-center">
                   <Icon name="mdi:check" class="w-5 h-5 mr-1" />
                   {{ dateFromNow(task.lastCheckin) }}
                 </p>
@@ -252,7 +261,7 @@ function handleDrop(index: number) {
             </div>
             <div v-if="!editMode">
               <button @click.stop.prevent="checkinTask(task.id)" :aria-label="task.url ? 'Open URL' : 'Check-in task'"
-                class="flex items-center justify-center p-2 rounded text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200">
+                class="flex items-center justify-center p-2 rounded text-cyan-600 hover:text-cyan-800 bg-cyan-100 hover:bg-cyan-200">
                 <Icon v-if="tasksDone[task.id]" name="mdi:check-bold" class="w-5 h-5" />
                 <Icon v-else-if="task.url" name="mdi:share-variant" class="w-5 h-5" />
                 <Icon v-else name="mdi:send-outline" class="w-5 h-5" />

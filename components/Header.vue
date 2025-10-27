@@ -29,6 +29,7 @@ function handleImport() {
 
     const file = event.target?.files?.[0]
 
+    // TODO: change confirm with better ui
     if (!file || !confirm('Importing data will delete ALL existing data and it cannot be undone. Make sure you have a backup. Continue?')) {
       return
     }
@@ -71,31 +72,35 @@ function handleImport() {
   }
   input.click()
 }
+
+const navitems = ref([
+  { name: 'Tasks', to: '/', icon: 'mdi:clipboard-check' },
+  { name: 'Calendar', to: '/calendar', icon: 'mdi:calendar' },
+])
 </script>
 
 <template>
-  <header class="w-screen px-2 py-4 text-green-800 border-b border-green-800 bg-white shadow">
-    <div class="flex flex-row items-center justify-between h-full max-w-4xl mx-auto gap-4">
-      <div class="flex flex-row items-center">
-        <Icon name="mdi:clipboard-clock-outline" class="w-8 h-8" />
-        <h1 class="pl-2 text-lg font-bold">Daily Tracker</h1>
+  <header class="w-screen px-4 text-cyan-600 bg-gradient-to-br from-cyan-100/50 to-pink-100/50 shadow">
+    <div class="flex flex-row items-center justify-between h-16 max-w-4xl mx-auto gap-4">
+      <div class="flex flex-row items-center h-full px-2">
+        <Icon name="mdi:clock-edit" class="w-8 h-8" />
+        <h1 class="pl-2 text-lg font-bold">Tracker</h1>
       </div>
-      <div class="flex flex-row items-center justify-start gap-2 flex-1">
+      <div class="flex flex-row items-center justify-start flex-1 h-full">
         <!-- TODO: add page transition or no?? -->
-        <NuxtLink to="/">
-          Tasks
-        </NuxtLink>
-        <NuxtLink to="/calendar">
-          Calendar
+        <NuxtLink v-for="item in navitems" :key="item.name" :to="item.to"
+          class="h-full px-4 flex items-center hover:bg-cyan-100/50" active-class="bg-cyan-200/50">
+          <Icon :name="item.icon" class="w-5 h-5" />
+          <span v-if="!isMobile()" class="ml-1">{{ item.name }}</span>
         </NuxtLink>
       </div>
       <div class="flex flex-row items-center">
         <button @click="handleExport" aria-label="Export tasks"
-          class="p-2 rounded-s font-semibold flex items-center justify-center text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-          <Icon name="mdi:download" class="w-5 h-5" />
+          class="p-2 rounded-s font-semibold flex items-center justify-center text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <Icon name="mdi:content-save" class="w-5 h-5" />
         </button>
         <button @click="handleImport" aria-label="Import tasks"
-          class="p-2 rounded-e font-semibold flex items-center justify-center text-white bg-green-500 hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-500">
+          class="p-2 rounded-e font-semibold flex items-center justify-center text-white bg-cyan-500 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <Icon name="mdi:upload" class="w-5 h-5" />
         </button>
       </div>
