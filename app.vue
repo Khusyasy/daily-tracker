@@ -13,9 +13,17 @@ useHead({
   ],
 })
 
+// const { $pwa } = useNuxtApp()
+
+// onMounted(() => {
+//   console.log($pwa.isPWAInstalled)
+//   if ($pwa.offlineReady)
+//     alert('App ready to work offline')
+// })
 </script>
 
 <template>
+  <NuxtPwaManifest />
   <div class="min-h-screen bg-white">
     <Header />
     <NuxtPage />
