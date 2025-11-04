@@ -80,10 +80,10 @@ const navitems = ref([
 </script>
 
 <template>
-  <header class="w-screen px-4 text-cyan-600 bg-gradient-to-br from-cyan-100/50 to-pink-100/50 shadow">
+  <header class="w-screen px-4 text-cyan-500 bg-gradient-to-br from-cyan-100/50 to-pink-100/50 shadow">
     <div class="flex flex-row items-center justify-between h-16 max-w-4xl mx-auto gap-4">
       <div class="flex flex-row items-center h-full px-2">
-        <Icon name="mdi:clock-edit" class="w-8 h-8" />
+        <img src="/logo.svg" alt="Logo" class="h-10 w-10" />
         <h1 class="pl-2 text-lg font-bold">Tracker</h1>
       </div>
       <div class="flex flex-row items-center justify-start flex-1 h-full">
@@ -91,7 +91,7 @@ const navitems = ref([
         <NuxtLink v-for="item in navitems" :key="item.name" :to="item.to"
           class="h-full px-4 flex items-center hover:bg-cyan-100/50" active-class="bg-cyan-200/50">
           <Icon :name="item.icon" class="w-5 h-5" />
-          <span v-if="!isMobile()" class="ml-1">{{ item.name }}</span>
+          <span v-if="!isMobile()" class="ml-1 font-semibold">{{ item.name }}</span>
         </NuxtLink>
       </div>
       <div class="flex flex-row items-center">

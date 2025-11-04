@@ -104,7 +104,7 @@ const checkinsInDate = computed(() => {
 <template>
   <!-- TODO: implement mobile responsive ui -->
   <div>
-    <div class="max-w-4xl mx-auto my-4 bg-cyan-50/50 shadow rounded p-4">
+    <div class="max-w-4xl mx-auto my-2 bg-cyan-50/50 shadow rounded p-4">
       <div class="mb-1">
         <div class="mb-1 flex items-center justify-start gap-2 px-2">
           <input type="checkbox" name="selectAll" id="selectAll" v-model="selectedAll"
@@ -127,13 +127,13 @@ const checkinsInDate = computed(() => {
       </div>
     </div>
 
-    <div class="max-w-4xl mx-auto my-4 bg-cyan-50/50 shadow rounded p-4">
-      <div class="flex flex-row items-center justify-between mb-2">
+    <div class="max-w-4xl mx-auto my-2 bg-cyan-50/50 shadow rounded p-4">
+      <div class="flex flex-row items-center justify-between mb-1">
         <h2 class="text-lg font-semibold text-gray-800">
           Calendar View
         </h2>
         <div class="flex flex-row items-center justify-center gap-2" :class="{
-          'bg-pink-100': year == nowYear && month == nowMonth
+          'bg-green-100': year == nowYear && month == nowMonth
         }">
           <button @click="prevMonth"
             class="p-2 rounded-s font-semibold flex items-center justify-center text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -159,7 +159,7 @@ const checkinsInDate = computed(() => {
         <div v-for="n in firstDayOfMonth" :key="'empty-' + n" class="border border-gray-200 p-2 h-20 rounded"></div>
         <div v-for="date in datesInMonth" :key="date" class="border border-cyan-200 p-2 h-20 rounded flex flex-col"
           :class="{
-            'border-pink-500': year == nowYear && month == nowMonth && date == nowDate
+            'border-green-500': year == nowYear && month == nowMonth && date == nowDate
           }">
           <div class="text-sm mb-1 font-semibold">{{ date }}</div>
           <div class="flex flex-row gap-1 flex-wrap overflow-y-auto">
