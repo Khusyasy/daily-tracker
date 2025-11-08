@@ -18,8 +18,8 @@ export default defineNuxtConfig({
   },
   pwa: {
     manifest: {
-      "name": "Daily Tracker",
-      "short_name": "Daily",
+      "name": "Do your Daily Tracker",
+      "short_name": "DyDaily",
       "start_url": "/",
       "icons": [
         {

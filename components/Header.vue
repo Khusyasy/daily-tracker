@@ -13,7 +13,7 @@ function handleExport() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `daily-tracker_${now.getTime()}.json`
+  a.download = `dydaily_${now.getTime()}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -84,7 +84,7 @@ const navitems = ref([
     <div class="flex flex-row items-center justify-between h-16 max-w-4xl mx-auto gap-4">
       <div class="flex flex-row items-center h-full px-2">
         <img src="/logo.svg" alt="Logo" class="h-10 w-10" />
-        <h1 class="pl-2 text-lg font-bold">Daily</h1>
+        <h1 class="pl-2 text-lg font-bold">DyDaily</h1>
       </div>
       <div class="flex flex-row items-center justify-start flex-1 h-full">
         <!-- TODO: add page transition or no?? -->
