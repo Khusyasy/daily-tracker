@@ -6,16 +6,17 @@ DyDaily is a simple tracker web app for completing daily login quest that is usu
 
 ### Daily Tracker with Streak Counter
 
-- Add tasks with name and server reset / refresh time (UTC), with optional url if the task have a website
-- Mark your task as done when you complete it, for the one with url it will open the link in new tab and mark it as done at the same time
-- Streak counter *(currently kinda buggy... the streak logic still need some improvements)*
+- Add tasks with name and server refresh time, with optional url
+- Mark your task when completed, url task will both open and mark it
+- Streak counter *(currently kinda buggy...)*
 
 ![DyDaily Preview 1](/docs/dydaily-preview-1.jpg)
+
 ![DyDaily Preview 2](/docs/dydaily-preview-2.jpg)
 
 ### Calendar View
 
-- Show all your daily completion with a monthly calendar view
+- Show all completion with a monthly calendar view
 
 ![DyDaily Preview 3](/docs/dydaily-preview-3.jpg)
 
@@ -23,7 +24,7 @@ DyDaily is a simple tracker web app for completing daily login quest that is usu
 
 - Data stored fully locally on your browser
 - Export / Import your data as plain json file
-- DyDaily have versioning support, so your data will be safe even if the app get major updates
+- Version support, your data is safe even with major updates
 
 ### PWA and Full Offline Support
 
@@ -31,14 +32,50 @@ DyDaily is a simple tracker web app for completing daily login quest that is usu
 - DyDaily works fully offline after the first load
 
 ## Future Plans
-- Dark Mode
-- Reminders / Notifications
-- more... suggestions are welcome!
+1. Task Editing
+2. Streak Logic Improvement
+3. Streak Break Protection
+4. Reminders / Notifications
+5. Dark Mode
+6. and more... suggestions are welcome!
 
-# Developement
+## Tech Stack
+- Language: TypeScript
+- Frontend: Vue.js
+- Backend: Nuxt.js
+- Styling: CSS, Tailwind CSS
+- Deployment: Github Pages
 
-TODO: complete development info
+# Development
+
+## Setup
+
+### Install
+
+```bash
+npm install
+```
+
+### Development Server
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run generate
+```
+
+or 
+
+```bash
+npx nuxt build --preset github_pages
+```
 
 ## Deploy to Github Pages
 
-https://nuxt.com/deploy/github-pages
+This repo uses Github Action based on the official documentation [here](https://nuxt.com/deploy/github-pages)
+
+
